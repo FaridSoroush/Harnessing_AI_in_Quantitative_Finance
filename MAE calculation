@@ -1,0 +1,16 @@
+# Calculate mean absolute errors
+mae_gbm = mean_absolute_error(y_test, gbm_predictions)
+mae_rf = mean_absolute_error(y_test, rf_predictions)
+mae_lr = mean_absolute_error(y_test, lr_predictions)
+
+# Create a DataFrame with the MAEs of each model
+mae_data = {'Model': ['GBM', 'RF', 'LR'], 'Mean Absolute Error': [mae_gbm, mae_rf, mae_lr]}
+mae_df = pd.DataFrame(mae_data)
+
+# Create a bar plot comparing the accuracy of the models
+plt.figure(figsize=(8, 6))
+plt.bar(mae_df['Model'], mae_df['Mean Absolute Error'])
+plt.title('Mean Absolute Error Comparison')
+plt.xlabel('Model')
+plt.ylabel('Mean Absolute Error')
+plt.show()
