@@ -1,0 +1,118 @@
+# Clear all variables
+%reset -f
+
+import requests
+import matplotlib.pyplot as plt
+import pandas as pd
+from sklearn.model_selection import train_test_split, TimeSeriesSplit, GridSearchCV
+from sklearn.ensemble import GradientBoostingRegressor
+from sklearn.metrics import mean_absolute_error
+from sklearn.ensemble import RandomForestRegressor
+from sklearn.linear_model import LinearRegression
+from sklearn.preprocessing import MinMaxScaler
+
+api_key = '7d6c81a3acb267d0545071b60cc05194'
+series_id = 'GDP'  # US GDP
+unemployment_series_id = 'UNRATE'
+inflation_series_id = 'T10YIE'
+federal_funds_rate_series_id = 'FEDFUNDS'
+consumer_price_index_series_id = 'CPIAUCSL'
+
+# Fetch GDP, unemployment, inflation, federal funds rate, and CPI data from the FRED API
+response = requests.get(f'https://api.stlouisfed.org/fred/series/observations?series_id={series_id}&api_key={api_key}&file_type=json')
+unemployment_response = requests.get(f'https://api.stlouisfed.org/fred/series/observations?series_id={unemployment_series_id}&api_key={api_key}&file_type=json')
+inflation_response = requests.get(f'https://api.stlouisfed.org/fred/series/observations?series_id={inflation_series_id}&api_key={api_key}&file_type=json')
+federal_funds_rate_response = requests.get(f'https://api.stlouisfed.org/fred/series/observations?series_id={federal_funds_rate_series_id}&api_key={api_key}&file_type=json')
+cpi_response = requests.get(f'https://api.stlouisfed.org/fred/series/observations?series_id={consumer_price_index_series_id}&api_key={api_key}&file_type=json')
+
+# Convert the responses to JSON
+data = response.json()
+unemployment_data = unemployment_response.json()
+inflation_data = inflation_response.json()
+federal_funds_rate_data = federal_funds_rate_response.json()
+cpi_data = cpi_response.json()
+
+# Normalize data
+df = pd.json_normalize(data['observations'])
+unemployment_df = pd.json_normalize(unemployment_data['observations'])
+inflation_df = pd.json_normalize(inflation_data['observations'])
+federal_funds_rate_df = pd.json_normalize(federal_funds_rate_data['observations'])
+cpi_df = pd.json_normalize(cpi_data['observations'])
+
+# Convert the 'date' column to datetime format and 'value' column to float
+df['date'] = pd.to_datetime(df['date'])
+df['value'] = pd.to_numeric(df['value'], errors='coerce')
+df = df.dropna()
+
+unemployment_df['date'] = pd.to_datetime(unemployment_df['date'])
+unemployment_df['value'] = pd.to_numeric(unemployment_df['value'], errors='coerce')
+unemployment_df = unemployment_df.dropna()
+
+inflation_df['date'] = pd.to_datetime(inflation_df['date'])
+inflation_df['value'] = pd.to_numeric(inflation_df['value'], errors='coerce')
+inflation_df = inflation_df.dropna()
+
+federal_funds_rate_df['date'] = pd.to_datetime(federal_funds_rate_df['date'])
+federal_funds_rate_df['value'] = pd.to_numeric(federal_funds_rate_df['value'], errors='coerce')
+federal_funds_rate_df = federal_funds_rate_df.dropna()
+
+cpi_df['date'] = pd.to_datetime(cpi_df['date'])
+cpi_df['value'] = pd.to_numeric(cpi_df['value'], errors='coerce')
+cpi_df = cpi_df.dropna()
+
+# Merge all dataframes into one
+df = pd.merge(df, unemployment_df, on='date', how='inner', suffixes=('_gdp', '_unemployment'))
+df = pd.merge(df, inflation_df, on='date', how='inner', suffixes=('_unemployment', '_inflation'))
+df = pd.merge(df, federal_funds_rate_df, on='date', how='inner', suffixes=('_inflation', '_federal_funds_rate'))
+df = pd.merge(df, cpi_df, on='date', how='inner', suffixes=('_federal_funds_rate', '_cpi'))
+
+# Convert 'date' column to index
+df.set_index('date', inplace=True)
+
+# Split dataset into train and test
+X = df.drop(['value_gdp', 'realtime_start_gdp', 'realtime_end_gdp', 'realtime_start_unemployment', 'realtime_end_unemployment', 'realtime_start_inflation', 'realtime_end_inflation', 'realtime_start_federal_funds_rate', 'realtime_end_federal_funds_rate', 'realtime_start', 'realtime_end'], axis=1)
+y = df['value_gdp']
+X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42)
+
+# Train a Gradient Boosting model
+gbm = GradientBoostingRegressor()
+gbm.fit(X_train, y_train)
+
+# Evaluate model
+gbm_predictions = gbm.predict(X_test)
+print("Mean absolute error for GBM: ", mean_absolute_error(y_test, gbm_predictions))
+
+# Train a Random Forest model
+rf = RandomForestRegressor()
+rf.fit(X_train, y_train)
+
+# Evaluate model
+rf_predictions = rf.predict(X_test)
+print("Mean absolute error for RF: ", mean_absolute_error(y_test, rf_predictions))
+
+# Train a Linear Regression model
+lr = LinearRegression()
+lr.fit(X_train, y_train)
+
+# Evaluate model
+lr_predictions = lr.predict(X_test)
+print("Mean absolute error for LR: ", mean_absolute_error(y_test, lr_predictions))
+
+# Create a new DataFrame for plotting
+plot_df = pd.DataFrame({"actual": y_test, "gbm": gbm_predictions, "rf": rf_predictions, "lr": lr_predictions}, index=X_test.index)
+
+# Sort the DataFrame by date (index)
+plot_df.sort_index(inplace=True)
+
+# Plot the actual values and the predictions
+plt.figure(figsize=(14, 6))
+plt.plot(plot_df.index, plot_df["actual"], label='Actual GDP')
+plt.plot(plot_df.index, plot_df["gbm"], label='GBM Predictions')
+plt.plot(plot_df.index, plot_df["rf"], label='RF Predictions')
+plt.plot(plot_df.index, plot_df["lr"], label='LR Predictions')
+plt.title('Actual vs Predicted GDP')
+plt.xlabel('Date')
+plt.ylabel('GDP')
+plt.legend()
+plt.show()
+
