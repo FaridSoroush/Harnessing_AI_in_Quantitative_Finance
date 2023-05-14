@@ -1,0 +1,53 @@
+# Install the fredapi package
+!pip install fredapi
+
+# Import the necessary libraries
+import pandas as pd
+import matplotlib.pyplot as plt
+from fredapi import Fred
+
+# Set the API key
+fred = Fred(api_key='7d6c81a3acb267d0545071b60cc05194')
+
+# Fetch data from Q2 2003 to Q1 2022
+unemployment = fred.get_series('UNRATE', start='2003-04-01', end='2022-04-01')  # Unemployment Rate
+inflation = fred.get_series('T10YIE', start='2003-04-01', end='2022-04-01')  # Inflation Rate
+federal_funds_rate = fred.get_series('FEDFUNDS', start='2003-04-01', end='2022-04-01')  # Federal Funds Rate
+cpi = fred.get_series('CPIAUCSL', start='2003-04-01', end='2022-04-01')  # Consumer Price Index
+
+# Create a single figure with subplots
+fig, axes = plt.subplots(2, 2, figsize=(18, 15))
+
+# Plot Unemployment Rate
+axes[0, 0].plot(unemployment.index, unemployment.values)
+axes[0, 0].set_title('Unemployment Rate Over Time')
+axes[0, 0].set_xlabel('Year')
+axes[0, 0].set_ylabel('Unemployment Rate')
+axes[0, 0].grid(True)
+
+# Plot Inflation Rate
+axes[0, 1].plot(inflation.index, inflation.values)
+axes[0, 1].set_title('Inflation Rate Over Time')
+axes[0, 1].set_xlabel('Year')
+axes[0, 1].set_ylabel('Inflation Rate')
+axes[0, 1].grid(True)
+
+# Plot Federal Funds Rate
+axes[1, 0].plot(federal_funds_rate.index, federal_funds_rate.values)
+axes[1, 0].set_title('Federal Funds Rate Over Time')
+axes[1, 0].set_xlabel('Year')
+axes[1, 0].set_ylabel('Federal Funds Rate')
+axes[1, 0].grid(True)
+
+# Plot CPI
+axes[1, 1].plot(cpi.index, cpi.values)
+axes[1, 1].set_title('Consumer Price Index Over Time')
+axes[1, 1].set_xlabel('Year')
+axes[1, 1].set_ylabel('CPI')
+axes[1, 1].grid(True)
+
+# Adjust spacing between subplots
+plt.tight_layout()
+
+# Show the figure
+plt.show()
