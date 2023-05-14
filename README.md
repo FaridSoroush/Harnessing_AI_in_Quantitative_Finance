@@ -1,2 +1,2 @@
-# Harnessing-AI-in-Quantitative-Finance-Predicting-GDP-using-Four-Models
-Harnessing AI in Quantitative Finance: Predicting GDP using Gradient Boosting, Random Forest, Linear Regression and LSTM Models
+# Harnessing-AI-in-Quantitative-Finance-Predicting-GDP-using-3-Models
+Harnessing AI in Quantitative Finance: Predicting GDP using Gradient Boosting, Random Forest, and Linear Regression Models
