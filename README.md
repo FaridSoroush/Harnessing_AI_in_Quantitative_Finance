@@ -1,3 +1,3 @@
-# Harnessing_AI_in_Quantitative_Finance
+# Harnessing AI in Quantitative Finance
 Predicting key macroeconomic indicators such as Gross Domestic Product (GDP) is a critical task in quantitative finance and economics. Precise forecasts of GDP can help in policy-making, investment decisions, and understanding the overall economic health of a country. Machine learning has emerged as a powerful tool in this domain, offering sophisticated techniques for modeling complex systems and making predictions. This project presents a comparative analysis of three machine learning models — Gradient Boosting Regressor, Random Forest Regressor, and Linear Regression — for predicting GDP. Our aim is to assess their performance and identify the model that provides the most accurate forecasts. <br>
 Link to report: https://vixra.org/abs/2305.0109
